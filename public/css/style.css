@@ -1,0 +1,17 @@
+form.login {
+    margin-left: auto;
+}
+.error-login {
+    margin-left: auto;
+    color: #ff0000;
+    margin-right: 20px
+}
+
+header {
+    background-color: #212529;
+}
+
+form.login label {
+    margin-bottom: 0px;
+    color: #ffffff;
+}
