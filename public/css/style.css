@@ -11,7 +11,7 @@ form.login {
 }
 
 #container-fluid {
-    height: 600px;
+    height: auto;
 }
 
 #search-text{
