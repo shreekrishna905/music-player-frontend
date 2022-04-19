@@ -65,22 +65,9 @@ window.onload = function () {
       currentTime.innerHTML = timeFormat(0);
       finishTime.innerHTML = timeFormat(audio.duration);
       progressBar.max = Math.floor(audio.duration);
-      let processing = false;
-      progressBar.oninput = function () {
-        processing = true;
-      };
-      progressBar.onchange = function () {
-        audio.currentTime = progressBar.value;
-        if (!audio.paused) {
-          audio.play();
-        }
-        processing = false;
-      };
       audio.ontimeupdate = function () {
-        if (!processing) {
-          progressBar.value = Math.floor(audio.currentTime);
-          currentTime.innerHTML = timeFormat(audio.currentTime);
-        }
+        progressBar.value = Math.floor(audio.currentTime);
+        currentTime.innerHTML = timeFormat(audio.currentTime);
       };
     };
   }
@@ -141,6 +128,8 @@ window.onload = function () {
       sessionStorage.setItem("access_token", result.access_token);
       showSearch();
       renderSongsAndPlaylist();
+      document.getElementById("username").value='';
+      document.getElementById("password").value='';
       document.getElementById("error-login").innerHTML = "";
     } else {
       document.getElementById("error-login").innerHTML =
@@ -157,7 +146,7 @@ window.onload = function () {
     const url = filter
       ? "http://localhost:3000/api/songs?keyword=" + filter
       : "http://localhost:3000/api/songs";
-    const title = filter ? "Result of " + filter : "Songs you may interested";
+    const title = filter ? "Result of '" + filter+"'" : "Songs you may interested";
     let songs = await fetch(url, {
       method: "GET",
       headers: {
@@ -165,7 +154,8 @@ window.onload = function () {
       },
     }).then((response) => response.json());
     sessionStorage.setItem("songs", JSON.stringify(songs));
-    if (filter) {
+    const songContainer = document.getElementById("song-container");
+    if(songContainer){
       document.getElementById("song-container").remove();
     }
     createSongTable(title);
@@ -336,6 +326,9 @@ window.onload = function () {
   }
 
   function playlistTables() {
+    if(document.getElementById("playlist-container")){
+      document.getElementById("playlist-container").remove();
+    }
     const div = document.createElement("div");
     div.classList = "content";
     div.id = "playlist-container";
@@ -356,6 +349,9 @@ window.onload = function () {
   }
 
   function emptyPlaylist() {
+    if(document.getElementById("playlist-container")){
+      document.getElementById("playlist-container").remove();
+    }
     document.getElementById("footer").style.display = "none";
     console.log(state.playType);
     if (state.playType != null) {
@@ -501,4 +497,11 @@ window.onload = function () {
     }
     getSongs(searchItem);
   };
+
+  document.getElementById("logo").onclick = function (event) {
+    event.preventDefault();
+    renderSongsAndPlaylist();
+  };
+
+  
 };
