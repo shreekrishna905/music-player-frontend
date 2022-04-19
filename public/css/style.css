@@ -6,6 +6,9 @@ form.login {
     color: #ff0000;
     margin-right: 20px
 }
+#logout {
+    display: none;;
+}
 
 header {
     background-color: #212529;
@@ -14,4 +17,8 @@ header {
 form.login label {
     margin-bottom: 0px;
     color: #ffffff;
+}
+
+footer {
+    display: none;
 }
