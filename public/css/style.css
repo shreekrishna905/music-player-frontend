@@ -6,8 +6,16 @@ form.login {
     color: #ff0000;
     margin-right: 20px
 }
-#logout {
-    display: none;;
+#search-info {
+    display: none;
+}
+
+#container-fluid {
+    height: 600px;
+}
+
+#search-text{
+    width:350px;
 }
 
 header {

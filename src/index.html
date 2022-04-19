@@ -20,12 +20,21 @@
                 <a class="navbar-brand" href="#">Music player</a>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
                     <form class="d-flex login" action="#" autocomplete="off">
-                        <label for="username" class="col-sm-2 col-form-label">User Name:</label>
-                        <input class="form-control me-2" required id="username" type="text" placeholder="User Name">
-                        <label for="password" class="col-sm-2 col-form-label">Password:</label>
-                        <input class="form-control me-2" required id="password" type="password" placeholder="Password">
-                        <button class="btn btn-outline-success" id="login" type="submit">Login</button>
-                        <button class="btn btn-outline-success" id="logout" type="submit">Logout</button>
+                        <div id="login-info" class="d-flex login">
+                            <label for="username" class="col-sm-2 col-form-label">User Name:</label>
+                            <input class="form-control me-2" required id="username" type="text" placeholder="User Name">
+                            <label for="password" class="col-sm-2 col-form-label">Password:</label>
+                            <input class="form-control me-2" required id="password" type="password" placeholder="Password">
+                            <button class="btn btn-outline-success" id="login" type="submit">Login</button>
+                        </div>
+                        <div id="search-info" class="login">
+                            <label for="username" class="col-sm-2 col-form-label">Search:</label>
+                            <input class="form-control me-2" required id="search-text" type="text" placeholder="Search a song">
+                            <button class="btn btn-success me-2" id="search"><i class="fa fa-search"></i></button>
+                            <button class="btn btn-danger" id="logout">Logout</button>
+                        </div>
+                        
+                        
                     </form>
                 </div>
             </div>
@@ -38,7 +47,6 @@
     <main>
         <div id="container-fluid">
             <h1 id="heading">Welcome to music player</h1>
-
         </div>
     </main>
 

@@ -4,6 +4,36 @@ window.onload = function () {
   let state = {
     playType:null
   }
+
+  function resetAudio(){
+      if(state.playType!=null){
+        document.getElementById(state.playType).style.backgroundColor = '';
+        state.playType = null;
+      }
+      audio.pause();
+      document.getElementById('song-title').innerHTML ='';
+      document.getElementById('current-time').innerHTML='00:00:00';
+      document.getElementById('finish-time').innerHTML='00:00:00';
+      audio = new Audio();
+      audio.addEventListener('ended', audioEndListner);
+  }
+
+  function showSearch(){
+    document.getElementById('login-info').classList.remove("d-flex");
+    document.getElementById('login-info').style.display='none';
+    document.getElementById('search-info').classList= "d-flex";
+  }
+
+  function showLogin(){
+    document.getElementById('search-info').classList.remove("d-flex");
+    document.getElementById('search-info').style.display='none';
+    document.getElementById('login-info').classList = "d-flex";
+    document.getElementById('song-container').remove();
+    document.getElementById('playlist-container').remove();
+    document.getElementById('heading').style.display='block';
+    document.getElementById('footer').style.display='none';
+    resetAudio();
+  }
   
   function audioPlayer(source, data,title) {
     console.log(source);
@@ -68,7 +98,14 @@ window.onload = function () {
   }
 
   if (sessionStorage.getItem("access_token")) {
+    showSearch();
     renderSongsAndPlaylist();
+  }
+
+  document.getElementById("logout").onclick = function(event) {
+    event.preventDefault();
+    showLogin();
+    sessionStorage.clear();
   }
 
   document.getElementById("login").onclick = function (event) {
@@ -95,16 +132,18 @@ window.onload = function () {
     }).then((res) => res.json());
     if (result.hasOwnProperty("access_token")) {
       sessionStorage.setItem("access_token", result.access_token);
+      showSearch();
       renderSongsAndPlaylist();
+      
     } else {
       document.getElementById("error-login").innerHTML =
         "Invalid Username or Password";
     }
   }
 
-  function renderSongsAndPlaylist() {
-    getSongs();
-    getPlaylists();
+  async function renderSongsAndPlaylist() {
+    await getSongs();
+    await getPlaylists();
   }
 
 
@@ -132,9 +171,8 @@ window.onload = function () {
 
   const createSongTable = () => {
     document.getElementById("heading").style.display = "none";
-    document.getElementById("footer").style.display = "block";
     const div = document.createElement("div");
-    div.classList = "content";
+    div.id = "song-container";
     div.innerHTML = `<h1> Song you may interest</h1>`;
     const songTable = document.createElement("table");
     songTable.classList = "table  table-bordered";
@@ -183,6 +221,31 @@ window.onload = function () {
         removeSong.addEventListener("click", function (event) {
           event.preventDefault();
           console.log(`Removing song ${element.id}`);
+          fetch('http://localhost:3000/api/playlists/tracks/' + element.id, {
+            method: 'DELETE',
+            headers: {
+              "x-access-token": sessionStorage.getItem("access_token"),
+          },
+        }).then(response => {
+            if(response.status==200){
+              alert('Delete successfully');
+            }
+            row.remove();
+            let playlist = JSON.parse(sessionStorage.getItem('playlists'));
+            let index = playlist.findIndex(song => song.id==element.id);
+            if(index>-1){
+              playlist.splice(index,1);
+            }
+            if(playlist.length===0){
+              document.getElementById('playlist-container').remove();
+              emptyPlaylist();
+            }
+            sessionStorage.setItem('playlists',JSON.stringify(playlist));
+            let currentPlay = document.getElementById('play-pause-link').dataset.id;
+            if(currentPlay==element.id){
+              resetAudio();
+            }
+        });
         });
         removeSong.classList = "btn btn-sm remove-song";
         removeSong.innerHTML = '<i class="fa-solid fa-minus"></i>';
@@ -215,8 +278,15 @@ window.onload = function () {
         })
     }).then(res => {
       if(res.status===200){
+        if(sessionStorage.getItem('playlists')==null){
+          sessionStorage.setItem('playlists', JSON.stringify([]));
+        } 
         let songIndex = JSON.parse(sessionStorage.getItem('playlists')).findIndex(song => song.id==element.id);
         if(songIndex<0){
+          if(JSON.parse(sessionStorage.getItem('playlists')).length==0){
+            document.getElementById('playlist-container').remove();
+            playlistTables();
+          }
           let playlistTable = document
           .getElementById("playlist")
           .getElementsByTagName("tbody")[0];
@@ -224,7 +294,8 @@ window.onload = function () {
           let playlist = JSON.parse(sessionStorage.getItem('playlists'));
           playlist.push(element);
           sessionStorage.setItem('playlists', JSON.stringify(playlist));
-        }
+          alert('Added successfully');
+        } 
       }
     });
 }
@@ -243,34 +314,7 @@ window.onload = function () {
         .getElementById("playlist")
         .getElementsByTagName("tbody")[0];
       playlists.forEach((element) => {
-        let row = playListTable.insertRow();
-        let id = row.insertCell(0);
-        let title = row.insertCell(1);
-        let action = row.insertCell(2);
-        id.innerHTML = element.id;
-        title.innerHTML = element.title;
-        const actionDiv = document.createElement("div");
-        actionDiv.classList = "d-grid gap-2 d-md-flex";
-        const removeSong = document.createElement("button");
-        removeSong.setAttribute("data-id", element.id);
-        removeSong.addEventListener("click", function (event) {
-          event.preventDefault();
-          console.log(`Removing song ${element.id}`);
-        });
-        removeSong.classList = "btn btn-sm remove-song";
-        removeSong.innerHTML = '<i class="fa-solid fa-minus"></i>';
-        const playSong = document.createElement("button");
-        playSong.addEventListener("click", function (event) {
-          event.preventDefault();
-          console.log(`Playing song ${element.id}`);
-          audioPlayer(element.source, element.id,element.title);
-          document.getElementById("play-pause-link").click();
-        });
-        playSong.classList = "btn btn-sm play-song";
-        playSong.innerHTML = '<i class="fa-solid fa-play"></i>';
-        actionDiv.append(removeSong);
-        actionDiv.append(playSong);
-        action.append(actionDiv);
+        addPlaylistRow(playListTable,element);
       });
     } else {
       emptyPlaylist();
@@ -279,8 +323,8 @@ window.onload = function () {
 
   function playlistTables() {
     const div = document.createElement("div");
-    console.log(div);
     div.classList = "content";
+    div.id='playlist-container';
     div.innerHTML = `<h1>Your Playlist</h1>`;
     const playlistTable = document.createElement("table");
     playlistTable.classList = "table  table-bordered";
@@ -294,12 +338,23 @@ window.onload = function () {
                             </thead><tbody></tbody>`;
     div.appendChild(playlistTable);
     document.getElementById("container-fluid").appendChild(div);
+    document.getElementById('footer').style.display='block';
   }
 
   function emptyPlaylist() {
+    document.getElementById('footer').style.display='none';
+    console.log(state.playType);
+    if(state.playType!=null){
+      document.getElementById(state.playType).style.backgroundColor = '';
+      state.playType = null;
+      resetAudio();
+    }
+    if(audio.played){
+      resetAudio();
+    }
     const div = document.createElement("div");
-    console.log(div);
     div.classList = "content";
+    div.id='playlist-container';
     div.innerHTML = `<h1>Your Playlist</h1><h2>No Songs in your playlist</h2>`;
     document.getElementById("container-fluid").appendChild(div);
   }
@@ -385,7 +440,7 @@ window.onload = function () {
     audio.loop=false;
   }
 
-  audio.addEventListener('ended', (event) => {
+  const audioEndListner = () => {
     console.log('audio has been ended');
     switch(state.playType) {
       case 'infinite':
@@ -404,7 +459,9 @@ window.onload = function () {
         break;
       default:
     }
-  });
+  }
+
+  audio.addEventListener('ended', audioEndListner);
 
 
 };
